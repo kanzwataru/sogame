@@ -4,57 +4,67 @@
 #include <SDL2/SDL.h>
 
 struct GameData {
-    SDL_Window *wnd;
-    SDL_Renderer *renderer;
     struct Game *game_table;
+    SDL_Rect rects[4];
+    SDL_Point dirs[4];
 };
 
 static struct GameData *g = NULL;
 
-static void recompile(void) {
-    puts("recompiling...");
-    system("make game");
-    puts("done recompiling");
-}
-
 void init(void) {
-    if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-        SDL_Quit();
-        g->game_table->running = 0;
+        for(int i = 0; i < 4; ++i) {
+        g->rects[i].x = i * 32;
+        g->rects[i].y = i * 32;
+        g->rects[i].w = 24;
+        g->rects[i].h = 24;
+        
+        g->dirs[i].x = -1;
+        g->dirs[i].y = 1;
     }
-
-    g->wnd = SDL_CreateWindow("SOGame", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 320, 200, 0);
 }
 
 int input(void) {
-    SDL_Event e;
 
-    while(SDL_PollEvent(&e) != 0) {
-        switch(e.type) {
-        case SDL_QUIT:
-            return 0;
-        case SDL_KEYDOWN:
-            if(e.key.keysym.sym == SDLK_F5)
-                recompile();
-            puts("down");
-            break;
-        }
-    }
-
-    return 1;
 }
 
 void update(float delta_time) {
+    for(int i = 0; i < 4; ++i) {
+        g->rects[i].x += g->dirs[i].x;
+        g->rects[i].y += g->dirs[i].y;
+        
+        if(g->rects[i].x + g->rects[i].w >= 320) {
+            g->dirs[i].x = -1;
+        }
+        
+        if(g->rects[i].x <= 0) {
+            g->dirs[i].x = 1;
+        }
+        
+        if(g->rects[i].y + g->rects[i].h >= 200) {
+            g->dirs[i].y = -1;
+        }
+        
+        if(g->rects[i].y <= 0) {
+            g->dirs[i].y = 1;
+        }
+    }
 }
 
-void render(void) {
+void render(void) {  
+    SDL_SetRenderDrawColor(g->game_table->api.rnd, 16, 32, 24, 255);
+    SDL_RenderClear(g->game_table->api.rnd);
+    
+    SDL_SetRenderDrawColor(g->game_table->api.rnd, 64, 128, 192, 255);
+    
+    for(int i = 0; i < 4; ++i) {
+        SDL_RenderFillRect(g->game_table->api.rnd, &g->rects[i]);
+    }
+    
+    SDL_RenderPresent(g->game_table->api.rnd);
 }
 
 void quit(void) {
-    if(g->wnd) {
-        SDL_DestroyWindow(g->wnd);
-        SDL_Quit();
-    }
+
 }
 
 void game_library_loaded(struct Game *game, void *memory_chunk) {
