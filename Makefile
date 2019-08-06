@@ -3,7 +3,7 @@
 all: engine game
 
 engine:
-	gcc engine.c -ldl -lSDL2 -o dllgame
+	gcc engine.c -ldl -lSDL2 -o sogame
 
 game:
 	touch lock
