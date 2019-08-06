@@ -30,7 +30,7 @@ void sdl_init(void) {
         exit(2);
     }
     
-    game_table.api.wnd = SDL_CreateWindow("SOGame", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 320, 200, 0);
+    game_table.api.wnd = SDL_CreateWindow("SOGame", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
     game_table.api.rnd = SDL_CreateRenderer(game_table.api.wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 }
 
