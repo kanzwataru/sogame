@@ -29,9 +29,16 @@ void sdl_init(void) {
         SDL_Quit();
         exit(2);
     }
-    
-    game_table.api.wnd = SDL_CreateWindow("SOGame", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
-    game_table.api.rnd = SDL_CreateRenderer(game_table.api.wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    SDL_GL_LoadLibrary(NULL);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+    game_table.api.wnd = SDL_CreateWindow("SOGame", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL);
+    game_table.api.gl_context = SDL_GL_CreateContext(game_table.api.wnd);
+
+    SDL_GL_SetSwapInterval(1);
 }
 
 int sdl_handle_events(void) {
@@ -54,9 +61,8 @@ int sdl_handle_events(void) {
 
 void sdl_quit(void) {
     if(game_table.api.wnd) {
+        SDL_GL_DeleteContext(game_table.api.gl_context);
         SDL_DestroyWindow(game_table.api.wnd);
-        SDL_DestroyRenderer(game_table.api.rnd);
-        SDL_Quit();
     }
 }
 
@@ -80,19 +86,19 @@ void load_game(void) {
         fputs(dlerror(), stderr);
         exit(1);
     }
-    
+
     GameHandshakeFunction handshake = dlsym(dyn_handle, "game_library_loaded");
     if((error = dlerror()) != NULL) {
         fputs(error, stderr);
         exit(1);
     }
-    
+
     handshake(&game_table, memory);
 }
 
 void ensure_game_latest(void) {
     struct stat attr;
-    
+
     if(0 == access("lock", F_OK)) {
         return;
     }
@@ -108,7 +114,7 @@ void ensure_game_latest(void) {
 
 void game_loop(void) {
     game_table.init();
-    
+
     while(sdl_handle_events() && game_table.running) {
         ensure_game_latest();
 
@@ -130,16 +136,14 @@ void cleanup(void) {
 }
 
 int main(void) {
-    char *error;
-    
     memory = malloc(MEGABYTES(24));
     assert(memory);
-    
+
     sdl_init();
-    
+
     atexit(cleanup);
     load_game();
     game_loop();
-    
+
     return 0;
 }

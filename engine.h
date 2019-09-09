@@ -4,7 +4,7 @@
 
 struct API {
     SDL_Window   *wnd;
-    SDL_Renderer *rnd;
+    SDL_GLContext gl_context;
 };
 
 struct Game {
@@ -13,7 +13,7 @@ struct Game {
     void (*update)(float);
     void (*render)(void);
     void (*quit)(void);
-    
+
     struct API api;
     int running;
 };
